@@ -1,0 +1,11 @@
+1. problem
+	- it is hard to add or delete layer
+
+
+2. issue
+	- structure padding can occur bug when getting gradient 
+	- loss founction is supposed to be continous
+	- How to train neural networks in parallel?
+	- verify gradient descent
+	- mnist dataset 
+		- read csv 
