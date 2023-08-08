@@ -6,18 +6,20 @@
 #include <pthread.h>
 
 #define resolution 512*512
-#define batch 64
-#define node_0 32
-#define node_1 16
-#define node_2 2
-#define learningRateMacro 10
+#define batch 784
+//#define batch 50
+#define node_0 10
+#define node_1 10
+#define node_2 10
+#define outputNode 10
+#define learningRateMacro 100
 #define base 1.001
 #define iteration 30
-#define dataNum 2
+#define dataNum 1
 
 typedef struct Data{
 	double input[batch];
-	double output[2];
+	double output[outputNode];
 }Data;
 
 typedef struct Gradient{
@@ -64,8 +66,9 @@ void runRandomDataTest(int trials, W* w, B* b, HiddenLayer *hiddenLayer );
 void* runTraining(void *input);
 void normalize( double* data, int size, double max );
 void readImage(const char* path, Data* data, int isLena );
-void readMnist(const char* path, unsigned char* mnist );
+void readMnist(const char* path, double* mnist, unsigned int m );
 int convertCharToInt( unsigned char x);
+void oneHotEncoding(int x, double* arr, int size);
 
 pthread_mutex_t key = PTHREAD_MUTEX_INITIALIZER;
 
@@ -75,11 +78,15 @@ int main()
 	srand(time(NULL));
 	Data data[dataNum];
 
-	unsigned char mnist[100][28*28+1];
-	//double mnist[100][28*28+1];
+	//unsigned char mnist[100][28*28+1];
+	double mnist[2][28*28+1];
 	
-	readMnist( "../data/MNIST_CSV/mnist_test.csv", mnist);
+	readMnist( "../data/MNIST_CSV/mnist_test.csv", mnist, 10000);
 //	readMnist( "./data/MNIST_CSV/test.csv", mnist);
+
+	memcpy( data[0].input, &mnist[0][1], sizeof(double)*batch );   	
+	normalize( data[0].input, batch, 255 );
+	oneHotEncoding( mnist[0][0], data[0].output , outputNode);
 
 //	readImage( "./data/lena.raw", &data[0], 1 );
 //	readImage( "./data/barbara.raw", &data[1], 0 );
@@ -105,6 +112,8 @@ int main()
 	initParameter( b._1, node_1, 1);
 	initParameter( b._2, node_2, 1);
 
+	gradientDescent(&w, &b, data, &hiddenLayer, learningRateMacro );	
+/*	
 	GradientDescentInput gradientDescentInput[dataNum];
 	for(int i=0;i< dataNum ;i++){
 		gradientDescentInput[i].w = &w;
@@ -112,10 +121,7 @@ int main()
 		gradientDescentInput[i].data = &data[i];
 		gradientDescentInput[i].hiddenLayer = &hiddenLayer;
 		gradientDescentInput[i].learningRate = learningRateMacro;
-
 	}
-
-//	runTraining( (void*)&gradientDescentInput ); 
 
 	pthread_t thread[ dataNum ];
 	for(int i=0;i< dataNum ;i++){
@@ -125,13 +131,14 @@ int main()
 	for(int i=0;i< dataNum ;i++){
 		pthread_join( thread[i], NULL );
 	}
-
+*/
+/*
 	runRandomDataTest(10, &w, &b, &hiddenLayer);
 	printf("lena prediction : ");
 	predict( &w, &b, &data[0], &hiddenLayer );
 	printf("barbara prediction : ");
 	predict( &w, &b, &data[1], &hiddenLayer );
-
+*/
 
 	return 0;
 }
@@ -143,7 +150,7 @@ void gradientDescent(W* w, B* b, Data* data, HiddenLayer* hiddenLayer, double le
 	double loss_2;
 	double* pw = (double*)w;
 	double* pb = (double*)b;
-	//while(1)
+	while(1)
 	{
 		gradient = getGradient(w, b, data, hiddenLayer, 0.001);
 		for(int i=0; i< sizeof(W)/sizeof(double); i++){
@@ -158,21 +165,28 @@ void gradientDescent(W* w, B* b, Data* data, HiddenLayer* hiddenLayer, double le
 	
 		if( loss_1 < loss_2 ){				
 			printf("%lf\n", loss_2);
-			printf("%lf %lf\n", hiddenLayer->_2[0], hiddenLayer->_2[1]);
+			for(int k=0;k<10;k++){
+				printf("%lf ", hiddenLayer->_2[k] );
+			}
+			printf("\n");
 			return;
 		}else{
 			loss_1 = loss_2;
-			//printf("%lf\n", loss_2);
-			count++;
-//			if( count % 100 == 0 ){
-			if( 1 ){
-				printf("%lf\n", loss_2);
-				printf("%lf %lf\n", hiddenLayer->_2[0], hiddenLayer->_2[1]);
-				count = 0;
+			printf("%lf\n", loss_2);
+			for(int k=0;k<10;k++){
+				printf("%lf ", hiddenLayer->_2[k] );
 			}
+			printf("\n");
 		}
-		if( count == iteration ){
-			return;
+	}
+}
+
+void oneHotEncoding(int x, double* arr, int size){
+	for(int i=0; i< size; i++){
+		if( i==x){
+			arr[i]=1;
+		}else{
+			arr[i]=0;
 		}
 	}
 }
@@ -202,7 +216,7 @@ int convertCharToInt( unsigned char x){
 	}
 }
 
-void readMnist(const char* path, unsigned char* mnist ){
+void readMnist(const char* path, double* mnist, unsigned int m ){
 	FILE *fptr;
 	if ((fptr = fopen( path ,"rb")) == NULL){
 		printf("Error! opening file");
@@ -212,14 +226,16 @@ void readMnist(const char* path, unsigned char* mnist ){
 	unsigned int n=0;
 	int sum=0;
 	int j=0;
-	for( unsigned int i=0; i< 10000; i++ ){
+	for( unsigned int i=0; i< m; i++ ){
 		unsigned char x =(unsigned char)fgetc( fptr );
 		if( x == '\n' ){
 			mnist[n]=sum;
 			n++;
 			j=0;
 			sum=0;
-			continue;
+	//		continue;
+			
+			break;
 		}
 		if( x != ',' ){
 			if(j!=0){
@@ -339,14 +355,14 @@ void forward(W* w, B* b, Data *data, HiddenLayer *hiddenLayer){
 	addMatrices( b->_2, hiddenLayer->_2, hiddenLayer->_2, node_2, 1 );
 //	sigmoid( hiddenLayer->_2, node_2 );
 
-	fixedSoftmax( hiddenLayer->_2, 2, base );
+	fixedSoftmax( hiddenLayer->_2, outputNode, base );
 //	originalSoftmax( hiddenLayer->_2, 2 );
 }
 
 double GetDistance(double *realValue, double *predictedValue){
-	double result[2];
-	subtractMatrices( realValue, predictedValue, result, 2, 1);
-	return getNorm( result, 2 );
+	double result[outputNode];
+	subtractMatrices( realValue, predictedValue, result, outputNode, 1);
+	return getNorm( result, outputNode );
 }
 
 double getLoss(W* w, B* b, Data *data, HiddenLayer *hiddenLayer){
