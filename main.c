@@ -13,8 +13,9 @@
 #define outputNode 10
 #define learningRateMacro 100
 #define base 1.001
-#define iteration 10
-#define dataNum 2
+#define iteration 20
+#define trainDataNum 20
+#define testDataNum 20
 
 typedef struct Data{
 	double input[batch];
@@ -75,22 +76,30 @@ int main()
 {
 
 	srand(time(NULL));
-	Data data[dataNum];
+	Data trainData[trainDataNum];
+	Data testData[testDataNum];
 
 	//unsigned char mnist[100][28*28+1];
-	double mnist[dataNum][28*28+1];
+	double mnist[ trainDataNum+testDataNum ][28*28+1];
 	
-	readMnist( "../data/MNIST_CSV/mnist_test.csv", mnist, dataNum);
+	readMnist( "../data/MNIST_CSV/mnist_test.csv", mnist, trainDataNum+testDataNum );
 /*
 	memcpy( data[0].input, &mnist[0][1], sizeof(double)*batch );   	
 	normalize( data[0].input, batch, 255 );
 	oneHotEncoding( mnist[0][0], data[0].output , outputNode);
 */
-	for(int i=0;i<dataNum;i++){
-		memcpy( data[i].input, &mnist[i][1], sizeof(double)*batch );   	
-		normalize( data[i].input, batch, 255 );
-		oneHotEncoding( mnist[i][0], data[i].output , outputNode);
+	for(int i=0;i<trainDataNum;i++){
+		memcpy( trainData[i].input, &mnist[i][1], sizeof(double)*batch );   	
+		normalize( trainData[i].input, batch, 255 );
+		oneHotEncoding( mnist[i][0], trainData[i].output , outputNode);
 	}
+
+	for(int i=0;i<testDataNum;i++){
+		memcpy( testData[i].input, &mnist[i+trainDataNum][1], sizeof(double)*batch );   	
+		normalize( testData[i].input, batch, 255 );
+		oneHotEncoding( mnist[i][0], testData[i].output , outputNode);
+	}
+
 
 
 //	readImage( "./data/lena.raw", &data[0], 1 );
@@ -118,8 +127,8 @@ int main()
 	initParameter( b._2, node_2, 1);
 
 	for(int j=0;j<iteration;j++){
-		for(int i=0;i<dataNum;i++){
-			gradientDescent(&w, &b, data+i, &hiddenLayer, learningRateMacro );	
+		for(int i=0;i<trainDataNum;i++){
+			gradientDescent(&w, &b, trainData+i, &hiddenLayer, learningRateMacro );	
 		}
 	}
 /*	
@@ -149,9 +158,10 @@ int main()
 	predict( &w, &b, &data[1], &hiddenLayer );
 */
 
-	printf("prediction : ");
-	predict( &w, &b, &data[1], &hiddenLayer );
-	
+	printf("prediction start\n");
+	for(int i=0;i<testDataNum; i++){
+		predict( &w, &b, testData+i, &hiddenLayer );
+	}
 	return 0;
 }
 
