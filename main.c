@@ -7,15 +7,14 @@
 
 #define resolution 512*512
 #define batch 784
-//#define batch 50
 #define node_0 10
 #define node_1 10
 #define node_2 10
 #define outputNode 10
 #define learningRateMacro 100
 #define base 1.001
-#define iteration 30
-#define dataNum 1
+#define iteration 10
+#define dataNum 2
 
 typedef struct Data{
 	double input[batch];
@@ -66,7 +65,7 @@ void runRandomDataTest(int trials, W* w, B* b, HiddenLayer *hiddenLayer );
 void* runTraining(void *input);
 void normalize( double* data, int size, double max );
 void readImage(const char* path, Data* data, int isLena );
-void readMnist(const char* path, double* mnist, unsigned int m );
+void readMnist(const char* path, double* mnist, unsigned int data_num );
 int convertCharToInt( unsigned char x);
 void oneHotEncoding(int x, double* arr, int size);
 
@@ -79,14 +78,20 @@ int main()
 	Data data[dataNum];
 
 	//unsigned char mnist[100][28*28+1];
-	double mnist[2][28*28+1];
+	double mnist[dataNum][28*28+1];
 	
-	readMnist( "../data/MNIST_CSV/mnist_test.csv", mnist, 10000);
-//	readMnist( "./data/MNIST_CSV/test.csv", mnist);
-
+	readMnist( "../data/MNIST_CSV/mnist_test.csv", mnist, dataNum);
+/*
 	memcpy( data[0].input, &mnist[0][1], sizeof(double)*batch );   	
 	normalize( data[0].input, batch, 255 );
 	oneHotEncoding( mnist[0][0], data[0].output , outputNode);
+*/
+	for(int i=0;i<dataNum;i++){
+		memcpy( data[i].input, &mnist[i][1], sizeof(double)*batch );   	
+		normalize( data[i].input, batch, 255 );
+		oneHotEncoding( mnist[i][0], data[i].output , outputNode);
+	}
+
 
 //	readImage( "./data/lena.raw", &data[0], 1 );
 //	readImage( "./data/barbara.raw", &data[1], 0 );
@@ -140,6 +145,9 @@ int main()
 	predict( &w, &b, &data[1], &hiddenLayer );
 */
 
+	printf("prediction : ");
+	predict( &w, &b, &data[1], &hiddenLayer );
+	
 	return 0;
 }
 
@@ -150,7 +158,8 @@ void gradientDescent(W* w, B* b, Data* data, HiddenLayer* hiddenLayer, double le
 	double loss_2;
 	double* pw = (double*)w;
 	double* pb = (double*)b;
-	while(1)
+	//while(1)
+	for(int c=0; c<iteration; c++) 
 	{
 		gradient = getGradient(w, b, data, hiddenLayer, 0.001);
 		for(int i=0; i< sizeof(W)/sizeof(double); i++){
@@ -165,7 +174,7 @@ void gradientDescent(W* w, B* b, Data* data, HiddenLayer* hiddenLayer, double le
 	
 		if( loss_1 < loss_2 ){				
 			printf("%lf\n", loss_2);
-			for(int k=0;k<10;k++){
+			for(int k=0;k<outputNode;k++){
 				printf("%lf ", hiddenLayer->_2[k] );
 			}
 			printf("\n");
@@ -173,7 +182,7 @@ void gradientDescent(W* w, B* b, Data* data, HiddenLayer* hiddenLayer, double le
 		}else{
 			loss_1 = loss_2;
 			printf("%lf\n", loss_2);
-			for(int k=0;k<10;k++){
+			for(int k=0;k<outputNode;k++){
 				printf("%lf ", hiddenLayer->_2[k] );
 			}
 			printf("\n");
@@ -216,7 +225,7 @@ int convertCharToInt( unsigned char x){
 	}
 }
 
-void readMnist(const char* path, double* mnist, unsigned int m ){
+void readMnist(const char* path, double* mnist, unsigned int data_num ){
 	FILE *fptr;
 	if ((fptr = fopen( path ,"rb")) == NULL){
 		printf("Error! opening file");
@@ -226,16 +235,20 @@ void readMnist(const char* path, double* mnist, unsigned int m ){
 	unsigned int n=0;
 	int sum=0;
 	int j=0;
-	for( unsigned int i=0; i< m; i++ ){
+	int count=0;
+	//for( unsigned int i=0; i< ; i++ ){
+	while(1){
 		unsigned char x =(unsigned char)fgetc( fptr );
 		if( x == '\n' ){
 			mnist[n]=sum;
 			n++;
 			j=0;
 			sum=0;
-	//		continue;
-			
-			break;
+			count++;
+			if( count == data_num){
+				break;
+			}
+			continue;
 		}
 		if( x != ',' ){
 			if(j!=0){
@@ -316,8 +329,10 @@ void runRandomDataTest(int trials, W* w, B* b, HiddenLayer *hiddenLayer ){
 
 void predict( W* w, B* b, Data *data, HiddenLayer *hiddenLayer ){
 	forward(w, b, data, hiddenLayer );
-	printf("%lf %lf\n", hiddenLayer->_2[0], hiddenLayer->_2[1]);
-	
+	for(int k=0;k<outputNode;k++){
+		printf("%lf ", hiddenLayer->_2[k] );
+	}
+	printf("\n");
 }
 
 Gradient getGradient(W* w, B* b, Data *data, HiddenLayer *hiddenLayer, double h ){
