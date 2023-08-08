@@ -11,11 +11,11 @@
 #define node_1 10
 #define node_2 10
 #define outputNode 10
-#define learningRateMacro 100
+#define learningRateMacro 10
 #define base 1.001
-#define iteration 20
-#define trainDataNum 20
-#define testDataNum 20
+#define iteration 200
+#define trainDataNum 400
+#define testDataNum 100
 
 typedef struct Data{
 	double input[batch];
@@ -195,7 +195,7 @@ void gradientDescent(W* w, B* b, Data* data, HiddenLayer* hiddenLayer, double le
 			return;
 		}else{
 			loss_1 = loss_2;
-			printf("%lf\n", loss_2);
+			printf("[ lose : %lf ]\n ", loss_2);
 			for(int k=0;k<outputNode;k++){
 				printf("%lf ", hiddenLayer->_2[k] );
 			}
