@@ -117,7 +117,11 @@ int main()
 	initParameter( b._1, node_1, 1);
 	initParameter( b._2, node_2, 1);
 
-	gradientDescent(&w, &b, data, &hiddenLayer, learningRateMacro );	
+	for(int j=0;j<iteration;j++){
+		for(int i=0;i<dataNum;i++){
+			gradientDescent(&w, &b, data+i, &hiddenLayer, learningRateMacro );	
+		}
+	}
 /*	
 	GradientDescentInput gradientDescentInput[dataNum];
 	for(int i=0;i< dataNum ;i++){
@@ -159,7 +163,7 @@ void gradientDescent(W* w, B* b, Data* data, HiddenLayer* hiddenLayer, double le
 	double* pw = (double*)w;
 	double* pb = (double*)b;
 	//while(1)
-	for(int c=0; c<iteration; c++) 
+	//for(int c=0; c<iteration; c++) 
 	{
 		gradient = getGradient(w, b, data, hiddenLayer, 0.001);
 		for(int i=0; i< sizeof(W)/sizeof(double); i++){
@@ -236,7 +240,6 @@ void readMnist(const char* path, double* mnist, unsigned int data_num ){
 	int sum=0;
 	int j=0;
 	int count=0;
-	//for( unsigned int i=0; i< ; i++ ){
 	while(1){
 		unsigned char x =(unsigned char)fgetc( fptr );
 		if( x == '\n' ){
@@ -329,6 +332,10 @@ void runRandomDataTest(int trials, W* w, B* b, HiddenLayer *hiddenLayer ){
 
 void predict( W* w, B* b, Data *data, HiddenLayer *hiddenLayer ){
 	forward(w, b, data, hiddenLayer );
+	double loss = absolute( getLoss( w, b, data, hiddenLayer ) );
+	printf("lose : %lf ", loss );
+	printf("\n");
+
 	for(int k=0;k<outputNode;k++){
 		printf("%lf ", hiddenLayer->_2[k] );
 	}
