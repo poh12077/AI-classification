@@ -64,7 +64,7 @@ void runRandomDataTest(int trials, W* w, B* b, HiddenLayer *hiddenLayer );
 void* runTraining(void *input);
 void normalize( double* data, int size, double max );
 void readImage(const char* path, Data* data, int isLena );
-void readCsv(const char* path, unsigned char* mnist );
+void readMnist(const char* path, unsigned char* mnist );
 int convertCharToInt( unsigned char x);
 
 pthread_mutex_t key = PTHREAD_MUTEX_INITIALIZER;
@@ -78,8 +78,8 @@ int main()
 	unsigned char mnist[100][28*28+1];
 	//double mnist[100][28*28+1];
 	
-	readCsv( "./data/MNIST_CSV/mnist_test.csv", mnist);
-//	readCsv( "./data/MNIST_CSV/test.csv", mnist);
+	readMnist( "../data/MNIST_CSV/mnist_test.csv", mnist);
+//	readMnist( "./data/MNIST_CSV/test.csv", mnist);
 
 //	readImage( "./data/lena.raw", &data[0], 1 );
 //	readImage( "./data/barbara.raw", &data[1], 0 );
@@ -202,7 +202,7 @@ int convertCharToInt( unsigned char x){
 	}
 }
 
-void readCsv(const char* path, unsigned char* mnist ){
+void readMnist(const char* path, unsigned char* mnist ){
 	FILE *fptr;
 	if ((fptr = fopen( path ,"rb")) == NULL){
 		printf("Error! opening file");
