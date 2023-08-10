@@ -119,6 +119,7 @@ void readParameter(char* path, W* w, B* b ){
 	if(fptr == NULL)
 	{
 	  printf("[readParameter Error]\n");
+	  exit(-1);
 	}
 
 	fread( w, sizeof(W), 1, fptr);
@@ -165,7 +166,7 @@ int convertCharToInt( unsigned char x){
 void readMnist(const char* path, double* mnist, unsigned int data_num ){
 	FILE *fptr;
 	if ((fptr = fopen( path ,"rb")) == NULL){
-		printf("Error! opening file");
+		printf("[ readMnist error ]\n");
 		exit(1);
 	}
 

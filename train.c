@@ -11,13 +11,10 @@
 #define node_1 10
 #define node_2 10
 #define outputNode 10
-//#define learningRateMacro 1 //traing work 
-#define learningRateMacro 10 
-//#define learningRateMacro 0.5  
+#define learningRateMacro 1 //traing work 
 #define base 1.001
 #define iteration 1
 #define trainDataNum 1000
-#define testDataNum 10
 #define parameterFilePath "parameter"
 #define dataPath "../data/MNIST_CSV/mnist_train.csv"
 #define mnistDataNum 60000
@@ -80,7 +77,6 @@ void readParameter(char* path, W* w, B* b );
 pthread_mutex_t key = PTHREAD_MUTEX_INITIALIZER;
 
 Data trainData[trainDataNum];
-Data testData[testDataNum];
 double mnist[ mnistDataNum ][28*28+1];
 	
 int main()
@@ -165,7 +161,7 @@ void gradientDescent(W* w, B* b, Data* data, HiddenLayer* hiddenLayer, double le
 
 void writeParameter(char* path, W* w, B* b ){
 	FILE *fptr;
-	fptr = fopen(path,"w");
+	fptr = fopen(path,"wb");
 	if(fptr == NULL)
 	{
 	  printf("[writeParameter Error]\n");
@@ -179,10 +175,11 @@ void writeParameter(char* path, W* w, B* b ){
 
 void readParameter(char* path, W* w, B* b ){
 	FILE *fptr;
-	fptr = fopen(path,"r");
+	fptr = fopen(path,"rb");
 	if(fptr == NULL)
 	{
-	  printf("[readParameter Error]\n");
+		printf("initialize parameter\n");
+		return;
 	}
 
 	fread( w, sizeof(W), 1, fptr);
@@ -228,8 +225,9 @@ int convertCharToInt( unsigned char x){
 
 void readMnist(const char* path, double* mnist, unsigned int data_num ){
 	FILE *fptr;
-	if ((fptr = fopen( path ,"rb")) == NULL){
-		printf("Error! opening file");
+	//if ((fptr = fopen( path ,"rb")) == NULL){
+	if ((fptr = fopen( path ,"r")) == NULL){
+		printf(" [readMnist  Error! ]\n");
 		exit(1);
 	}
 
