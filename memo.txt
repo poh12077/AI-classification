@@ -6,6 +6,7 @@
 	- structure padding can occur bug when getting gradient 
 	- loss founction is supposed to be continous
 	- How to train neural networks in parallel?
+		- parallelize matrix multiplication 
 	- verify gradient descent
 	- mnist dataset 
 		- read csv 

@@ -11,11 +11,15 @@
 #define node_1 10
 #define node_2 10
 #define outputNode 10
-#define learningRateMacro 10
+#define learningRateMacro 1 //traing work 
+//#define learningRateMacro 0.5  
 #define base 1.001
-#define iteration 200
-#define trainDataNum 400
-#define testDataNum 100
+#define iteration 1
+#define trainDataNum 500
+#define testDataNum 10
+#define parameterFilePath "parameter"
+#define dataPath "../data/MNIST_CSV/mnist_train.csv"
+#define mnistDataNum 60000
 
 typedef struct Data{
 	double input[batch];
@@ -69,94 +73,58 @@ void readImage(const char* path, Data* data, int isLena );
 void readMnist(const char* path, double* mnist, unsigned int data_num );
 int convertCharToInt( unsigned char x);
 void oneHotEncoding(int x, double* arr, int size);
+void writeParameter(char* path, W* w, B* b );
+void readParameter(char* path, W* w, B* b );
 
 pthread_mutex_t key = PTHREAD_MUTEX_INITIALIZER;
 
+Data trainData[trainDataNum];
+Data testData[testDataNum];
+double mnist[ mnistDataNum ][28*28+1];
+	
 int main()
 {
 
 	srand(time(NULL));
-	Data trainData[trainDataNum];
-	Data testData[testDataNum];
 
-	//unsigned char mnist[100][28*28+1];
-	double mnist[ trainDataNum+testDataNum ][28*28+1];
-	
-	readMnist( "../data/MNIST_CSV/mnist_test.csv", mnist, trainDataNum+testDataNum );
-/*
-	memcpy( data[0].input, &mnist[0][1], sizeof(double)*batch );   	
-	normalize( data[0].input, batch, 255 );
-	oneHotEncoding( mnist[0][0], data[0].output , outputNode);
-*/
+	readMnist( dataPath , mnist, mnistDataNum );
+
 	for(int i=0;i<trainDataNum;i++){
-		memcpy( trainData[i].input, &mnist[i][1], sizeof(double)*batch );   	
+		int random = rand() % mnistDataNum;
+		memcpy( trainData[i].input, &mnist[ random ][1], sizeof(double)*batch );   	
 		normalize( trainData[i].input, batch, 255 );
-		oneHotEncoding( mnist[i][0], trainData[i].output , outputNode);
+		oneHotEncoding( mnist[ random ][0], trainData[i].output , outputNode);
 	}
 
 	for(int i=0;i<testDataNum;i++){
-		memcpy( testData[i].input, &mnist[i+trainDataNum][1], sizeof(double)*batch );   	
+		int random = rand() % mnistDataNum;
+		memcpy( testData[i].input, &mnist[ random ][1], sizeof(double)*batch );   	
 		normalize( testData[i].input, batch, 255 );
-		oneHotEncoding( mnist[i][0], testData[i].output , outputNode);
+		oneHotEncoding( mnist[ random ][0], testData[i].output , outputNode);
 	}
 
-
-
-//	readImage( "./data/lena.raw", &data[0], 1 );
-//	readImage( "./data/barbara.raw", &data[1], 0 );
-/*
-	//generate random image
-	for(int j=1; j<dataNum; j++){
-		for(int i=0;i<batch;i++){
-			int r = rand()%256;
-			data[j].input[i] = (double)r;
-		}
-		data[j].output[0] = 0;
-		data[j].output[1] = 1;
-		normalize( data[j].input, batch, 255 );
-	}
-*/
 	HiddenLayer hiddenLayer;
 	W w;
 	B b;
+/*
 	initParameter( w._0, node_0, batch);
 	initParameter( w._1, node_1, node_0);
 	initParameter( w._2, node_2, node_1);
 	initParameter( b._0, node_0, 1);
 	initParameter( b._1, node_1, 1);
 	initParameter( b._2, node_2, 1);
+*/
+	readParameter( parameterFilePath, &w, &b );
 
 	for(int j=0;j<iteration;j++){
 		for(int i=0;i<trainDataNum;i++){
+			printf("data number : %d\n", i);
 			gradientDescent(&w, &b, trainData+i, &hiddenLayer, learningRateMacro );	
+			printf("\n");
 		}
 	}
-/*	
-	GradientDescentInput gradientDescentInput[dataNum];
-	for(int i=0;i< dataNum ;i++){
-		gradientDescentInput[i].w = &w;
-		gradientDescentInput[i].b = &b;
-		gradientDescentInput[i].data = &data[i];
-		gradientDescentInput[i].hiddenLayer = &hiddenLayer;
-		gradientDescentInput[i].learningRate = learningRateMacro;
-	}
 
-	pthread_t thread[ dataNum ];
-	for(int i=0;i< dataNum ;i++){
-		pthread_create( &thread[i], NULL, runTraining, (void*)&gradientDescentInput[i] ); 
-	}
-
-	for(int i=0;i< dataNum ;i++){
-		pthread_join( thread[i], NULL );
-	}
-*/
-/*
-	runRandomDataTest(10, &w, &b, &hiddenLayer);
-	printf("lena prediction : ");
-	predict( &w, &b, &data[0], &hiddenLayer );
-	printf("barbara prediction : ");
-	predict( &w, &b, &data[1], &hiddenLayer );
-*/
+	writeParameter( parameterFilePath, &w, &b );
 
 	printf("prediction start\n");
 	for(int i=0;i<testDataNum; i++){
@@ -202,6 +170,34 @@ void gradientDescent(W* w, B* b, Data* data, HiddenLayer* hiddenLayer, double le
 			printf("\n");
 		}
 	}
+}
+
+void writeParameter(char* path, W* w, B* b ){
+	FILE *fptr;
+	fptr = fopen(path,"w");
+	if(fptr == NULL)
+	{
+	  printf("[writeParameter Error]\n");
+	}
+
+	fwrite( w, sizeof(W), 1, fptr);
+	fwrite( b, sizeof(B), 1, fptr);
+
+	fclose(fptr);
+}
+
+void readParameter(char* path, W* w, B* b ){
+	FILE *fptr;
+	fptr = fopen(path,"r");
+	if(fptr == NULL)
+	{
+	  printf("[readParameter Error]\n");
+	}
+
+	fread( w, sizeof(W), 1, fptr);
+	fread( b, sizeof(B), 1, fptr);
+
+	fclose(fptr);
 }
 
 void oneHotEncoding(int x, double* arr, int size){
