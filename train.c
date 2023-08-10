@@ -11,11 +11,12 @@
 #define node_1 10
 #define node_2 10
 #define outputNode 10
-#define learningRateMacro 1 //traing work 
+//#define learningRateMacro 1 //traing work 
+#define learningRateMacro 10 
 //#define learningRateMacro 0.5  
 #define base 1.001
 #define iteration 1
-#define trainDataNum 500
+#define trainDataNum 1000
 #define testDataNum 10
 #define parameterFilePath "parameter"
 #define dataPath "../data/MNIST_CSV/mnist_train.csv"
@@ -87,48 +88,38 @@ int main()
 
 	srand(time(NULL));
 
-	readMnist( dataPath , mnist, mnistDataNum );
-
-	for(int i=0;i<trainDataNum;i++){
-		int random = rand() % mnistDataNum;
-		memcpy( trainData[i].input, &mnist[ random ][1], sizeof(double)*batch );   	
-		normalize( trainData[i].input, batch, 255 );
-		oneHotEncoding( mnist[ random ][0], trainData[i].output , outputNode);
-	}
-
-	for(int i=0;i<testDataNum;i++){
-		int random = rand() % mnistDataNum;
-		memcpy( testData[i].input, &mnist[ random ][1], sizeof(double)*batch );   	
-		normalize( testData[i].input, batch, 255 );
-		oneHotEncoding( mnist[ random ][0], testData[i].output , outputNode);
-	}
-
 	HiddenLayer hiddenLayer;
 	W w;
 	B b;
-/*
+
 	initParameter( w._0, node_0, batch);
 	initParameter( w._1, node_1, node_0);
 	initParameter( w._2, node_2, node_1);
 	initParameter( b._0, node_0, 1);
 	initParameter( b._1, node_1, 1);
 	initParameter( b._2, node_2, 1);
-*/
-	readParameter( parameterFilePath, &w, &b );
 
-	for(int j=0;j<iteration;j++){
+
+	while(1){
+
+		readMnist( dataPath , mnist, mnistDataNum );
+
 		for(int i=0;i<trainDataNum;i++){
-			printf("data number : %d\n", i);
-			gradientDescent(&w, &b, trainData+i, &hiddenLayer, learningRateMacro );	
-			printf("\n");
+			int random = rand() % mnistDataNum;
+			memcpy( trainData[i].input, &mnist[ random ][1], sizeof(double)*batch );   	
+			normalize( trainData[i].input, batch, 255 );
+			oneHotEncoding( mnist[ random ][0], trainData[i].output , outputNode);
 		}
-	}
+		readParameter( parameterFilePath, &w, &b );
 
-	writeParameter( parameterFilePath, &w, &b );
-
-	printf("prediction start\n");
-	for(int i=0;i<testDataNum; i++){
-		predict( &w, &b, testData+i, &hiddenLayer );
+		for(int j=0;j<iteration;j++){
+			for(int i=0;i<trainDataNum;i++){
+				printf("data number : %d\n", i);
+				gradientDescent(&w, &b, trainData+i, &hiddenLayer, learningRateMacro );	
+				printf("\n");
+			}
+		}
+		writeParameter( parameterFilePath, &w, &b );
 	}
 	return 0;
 }

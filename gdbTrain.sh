@@ -1,0 +1,1 @@
+gdb -tui train.out

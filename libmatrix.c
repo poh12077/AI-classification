@@ -1,6 +1,20 @@
 #include "header.h"
 #include <math.h>
 
+int findBiggestOrder(double* arr, int size){
+	double* brr = (double*)malloc( sizeof(double) * size );
+	memcpy( brr, arr, sizeof(double) * size ); 
+	int orderOfBiggest=0;
+	for(int i=1;i<size;i++){
+		if( brr[0] < brr[i] ){
+			brr[0] = brr[i];
+			orderOfBiggest = i;
+		}
+	}
+	free(brr);
+	return orderOfBiggest;
+}
+
 void multiplyMatrices(double *a_, double *b_, unsigned int a_row, unsigned int a_column, unsigned int b_column, double *result_  ){
 	double (*a)[a_column] = a_;
 	double (*b)[b_column] = b_;
@@ -117,8 +131,8 @@ void subtractMatrices(double *a, double *b, double *result, unsigned int row, un
 /*
 int main(){
 	
-	double a[3]={-1,1,2};
-	sigmoid( a, 3 );
+	double a[5]={ -1.3, 1, -2.4, 5.4, 8.2};
+	int x = findBiggestOrder(a,5);
 
 }
 */

@@ -13,3 +13,4 @@ double getNorm( double *v, unsigned size );
 void multiplyMatrices(double *a_, double *b_, unsigned int a_row, unsigned int a_column, unsigned int b_column, double *result_  );
 void addMatrices(double *a, double *b, double *result, unsigned int row, unsigned int column );
 void subtractMatrices(double *a, double *b, double *result, unsigned int row, unsigned int column );
+int findBiggestOrder(double* arr, int size);

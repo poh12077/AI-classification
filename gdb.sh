@@ -1,1 +1,0 @@
-gdb -tui a.out
