@@ -1,8 +1,6 @@
 #include "header.h"
 #include <math.h>
 
-
-
 void gradientDescent(W* w, B* b, Data* data, HiddenLayer* hiddenLayer, double learningRate ){
     static int count=0;
     Gradient gradient;
@@ -82,7 +80,6 @@ void oneHotEncoding(int x, double* arr, int size){
     }
 }
 
-
 int convertCharToInt( unsigned char x){
     switch ( x ){
         case '0':
@@ -107,7 +104,6 @@ int convertCharToInt( unsigned char x){
             return 9;
     }
 }
-
 
 void readMnist(const char* path, double* mnist, unsigned int data_num ){
     FILE *fptr;
@@ -158,8 +154,6 @@ void normalize( double* data, int size, double max ){
     }
 }
 
-
-
 Gradient getGradient(W* w, B* b, Data *data, HiddenLayer *hiddenLayer, double h ){
     Gradient gradient;
     gradient.w = (double*)malloc( sizeof(W) );
@@ -180,7 +174,6 @@ Gradient getGradient(W* w, B* b, Data *data, HiddenLayer *hiddenLayer, double h 
     }
     return gradient;
 }
-
 
 
 void forward(W* w, B* b, Data *data, HiddenLayer *hiddenLayer){
@@ -229,8 +222,6 @@ void initParameter( double* w, unsigned int row, unsigned int column){
         //w[i] = 1;
     }
 }
-
-
 
 
 int findBiggestOrder(double* arr, int size){

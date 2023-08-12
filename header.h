@@ -3,8 +3,6 @@
 #include <time.h>
 #include <stdlib.h>
 
-
-
 #define inputNode 784
 #define node_0 10
 #define node_1 10
@@ -51,7 +49,6 @@ typedef struct Bias{
 }B;
 
 void predict( W* w, B* b, Data *data, HiddenLayer *hiddenLayer, int* numberOfCorrect );
-
 double GetDistance(double *realValue, double *predictedValue);
 void forward(W* w, B* b, Data* data, HiddenLayer* hiddenLayer);
 void initParameter( double* w, unsigned int row, unsigned int column);
@@ -65,11 +62,6 @@ int convertCharToInt( unsigned char x);
 void oneHotEncoding(int x, double* arr, int size);
 void writeParameter(char* path, W* w, B* b );
 void readParameter(char* path, W* w, B* b );
-
-
-
-
-
 void originalSoftmax(double* vector, int size);
 void sigmoid(double* vector, int size);
 void fixedSoftmax(double* vector, int size);
