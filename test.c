@@ -1,8 +1,12 @@
+
+#include "header.h"
+
+
+/*
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
 #include <stdlib.h>
-#include "header.h"
 #include <pthread.h>
 
 #define resolution 512*512
@@ -15,10 +19,10 @@
 //#define learningRateMacro 0.5  
 #define base 1.001
 #define iteration 1
-#define testDataNum 1000
+#define testDataSize 1000
 #define parameterFilePath "parameter"
-#define dataPath "../data/MNIST_CSV/mnist_test.csv"
-#define mnistDataNum 10000
+#define testDataPath "../data/MNIST_CSV/mnist_test.csv"
+#define testDataSize 10000
 
 typedef struct Data{
 	double input[batch];
@@ -74,23 +78,23 @@ int convertCharToInt( unsigned char x);
 void oneHotEncoding(int x, double* arr, int size);
 void writeParameter(char* path, W* w, B* b );
 void readParameter(char* path, W* w, B* b );
+*/
 
-pthread_mutex_t key = PTHREAD_MUTEX_INITIALIZER;
 
-Data testData[testDataNum];
-double mnist[ mnistDataNum ][28*28+1];
+Data testData[ testBatch ];
+double mnist[ testDataSize ][28*28+1];
 	
 int main()
 {
 
 	srand(time(NULL));
 
-	readMnist( dataPath , mnist, mnistDataNum );
+	readMnist( testDataPath , mnist, testDataSize );
 
-	for(int i=0;i<testDataNum;i++){
-		int random = rand() % mnistDataNum;
-		memcpy( testData[i].input, &mnist[ random ][1], sizeof(double)*batch );   	
-		normalize( testData[i].input, batch, 255 );
+	for(int i=0;i< testBatch ;i++){
+		int random = rand() % testDataSize;
+		memcpy( testData[i].input, &mnist[ random ][1], sizeof(double)*inputNode );   	
+		normalize( testData[i].input, inputNode, 255 );
 		oneHotEncoding( mnist[ random ][0], testData[i].output , outputNode);
 	}
 
@@ -102,17 +106,18 @@ int main()
 
 	int numberOfCorrect=0;
 	printf("prediction start\n\n");
-	for(int i=0;i<testDataNum; i++){
+	for(int i=0;i< testBatch ; i++){
 		predict( &w, &b, testData+i, &hiddenLayer, &numberOfCorrect );
 		printf("\n");
 	}
-	double accuracy = (double)numberOfCorrect / (double)testDataNum ;
+	double accuracy = (double)numberOfCorrect / (double)testBatch ;
 	accuracy *= 100;
 	printf("accuracy : %lf\n", accuracy );
 
 	return 0;
 }
 
+/*
 void readParameter(char* path, W* w, B* b ){
 	FILE *fptr;
 	fptr = fopen(path,"r");
@@ -302,4 +307,4 @@ void initParameter( double* w, unsigned int row, unsigned int column){
 		//w[i] = 1;
 	}
 }
-
+*/

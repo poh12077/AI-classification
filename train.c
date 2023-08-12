@@ -1,9 +1,15 @@
+
+#include "header.h"
+
+/*
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
 #include <stdlib.h>
-#include "header.h"
-#include <pthread.h>
+
+
+
+
 
 #define inputNode 784
 #define node_0 10
@@ -12,10 +18,10 @@
 #define learningRateMacro 0.1 //traing work 
 #define base 1.001
 #define iteration 1
-#define batch 1000
+#define trainBatch 1000
 #define parameterFilePath "parameter"
-#define dataPath "../data/MNIST_CSV/mnist_train.csv"
-#define dataSize 60000
+#define trainDataPath "../data/MNIST_CSV/mnist_train.csv"
+#define trainDataSize 60000
 
 typedef struct Data{
 	double input[inputNode];
@@ -59,9 +65,11 @@ int convertCharToInt( unsigned char x);
 void oneHotEncoding(int x, double* arr, int size);
 void writeParameter(char* path, W* w, B* b );
 void readParameter(char* path, W* w, B* b );
+*/
 
-Data trainData[batch];
-double mnist[ dataSize ][28*28+1];
+
+Data trainData[trainBatch];
+double mnist[ trainDataSize ][28*28+1];
 	
 int main()
 {
@@ -81,10 +89,10 @@ int main()
 
 	while(1){
 
-		readMnist( dataPath , mnist, dataSize );
+		readMnist( trainDataPath , mnist, trainDataSize );
 
-		for(int i=0;i<batch;i++){
-			int random = rand() % dataSize;
+		for(int i=0;i<trainBatch;i++){
+			int random = rand() % trainDataSize;
 			memcpy( trainData[i].input, &mnist[ random ][1], sizeof(double)*inputNode );   	
 			normalize( trainData[i].input, inputNode, 255 );
 			oneHotEncoding( mnist[ random ][0], trainData[i].output , outputNode);
@@ -92,7 +100,7 @@ int main()
 		readParameter( parameterFilePath, &w, &b );
 
 		for(int j=0;j<iteration;j++){
-			for(int i=0;i<batch;i++){
+			for(int i=0;i<trainBatch;i++){
 				printf("data number : %d\n", i);
 				gradientDescent(&w, &b, trainData+i, &hiddenLayer, learningRateMacro );	
 				printf("\n");
@@ -102,6 +110,8 @@ int main()
 	}
 	return 0;
 }
+
+/*
 
 void gradientDescent(W* w, B* b, Data* data, HiddenLayer* hiddenLayer, double learningRate ){	
 	static int count=0;
@@ -322,4 +332,6 @@ void initParameter( double* w, unsigned int row, unsigned int column){
 		//w[i] = 1;
 	}
 }
+
+*/
 
