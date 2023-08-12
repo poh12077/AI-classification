@@ -15,7 +15,7 @@
 #define batch 1000
 #define parameterFilePath "parameter"
 #define dataPath "../data/MNIST_CSV/mnist_train.csv"
-#define dataSize 60000
+#define dataSize 10000
 
 typedef struct Data{
 	double input[inputNode];
@@ -59,49 +59,67 @@ int convertCharToInt( unsigned char x);
 void oneHotEncoding(int x, double* arr, int size);
 void writeParameter(char* path, W* w, B* b );
 void readParameter(char* path, W* w, B* b );
+void predict( W* w, B* b, Data *data, HiddenLayer *hiddenLayer, int* numberOfCorrect );
 
 Data trainData[batch];
 double mnist[ dataSize ][28*28+1];
-	
+
 int main()
 {
 
-	srand(time(NULL));
+    srand(time(NULL));
 
-	HiddenLayer hiddenLayer;
-	W w;
-	B b;
+    readMnist( dataPath , mnist, mnistDataNum );
 
-	initParameter( w._0, node_0, inputNode);
-	initParameter( w._1, node_1, node_0);
-	initParameter( w._2, outputNode, node_1);
-	initParameter( b._0, node_0, 1);
-	initParameter( b._1, node_1, 1);
-	initParameter( b._2, outputNode, 1);
+    for(int i=0;i<testDataNum;i++){
+        int random = rand() % mnistDataNum;
+        memcpy( testData[i].input, &mnist[ random ][1], sizeof(double)*batch );
+        normalize( testData[i].input, batch, 255 );
+        oneHotEncoding( mnist[ random ][0], testData[i].output , outputNode);
+    }
 
-	while(1){
+    HiddenLayer hiddenLayer;
+    W w;
+    B b;
 
-		readMnist( dataPath , mnist, dataSize );
+    readParameter( parameterFilePath, &w, &b );
 
-		for(int i=0;i<batch;i++){
-			int random = rand() % dataSize;
-			memcpy( trainData[i].input, &mnist[ random ][1], sizeof(double)*inputNode );   	
-			normalize( trainData[i].input, inputNode, 255 );
-			oneHotEncoding( mnist[ random ][0], trainData[i].output , outputNode);
-		}
-		readParameter( parameterFilePath, &w, &b );
+    int numberOfCorrect=0;
+    printf("prediction start\n\n");
+    for(int i=0;i<testDataNum; i++){
+        predict( &w, &b, testData+i, &hiddenLayer, &numberOfCorrect );
+        printf("\n");
+    }
+    double accuracy = (double)numberOfCorrect / (double)testDataNum ;
+    accuracy *= 100;
+    printf("accuracy : %lf\n", accuracy );
 
-		for(int j=0;j<iteration;j++){
-			for(int i=0;i<batch;i++){
-				printf("data number : %d\n", i);
-				gradientDescent(&w, &b, trainData+i, &hiddenLayer, learningRateMacro );	
-				printf("\n");
-			}
-		}
-		writeParameter( parameterFilePath, &w, &b );
-	}
-	return 0;
+    return 0;
 }
+
+void predict( W* w, B* b, Data *data, HiddenLayer *hiddenLayer, int* numberOfCorrect ){
+    forward(w, b, data, hiddenLayer );
+    double loss = absolute( getLoss( w, b, data, hiddenLayer ) );
+    int label = findBiggestOrder( data->output, outputNode );
+    int prediction = findBiggestOrder( hiddenLayer->_2, outputNode );
+
+    if( label == prediction ){
+        printf("correct!! label is %d\n", label);
+        *numberOfCorrect = (*numberOfCorrect) + 1;
+    }else{
+        printf("wrong!! label is %d\n", label);
+    }
+
+    printf("lose : %lf ", loss );
+    printf("\n");
+
+    for(int k=0;k<outputNode;k++){
+        printf("%lf ", hiddenLayer->_2[k] * 100 );
+    }
+    printf("\n");
+}
+
+
 
 void gradientDescent(W* w, B* b, Data* data, HiddenLayer* hiddenLayer, double learningRate ){	
 	static int count=0;

@@ -1,9 +1,8 @@
-/*
-double getLoss(double *realValue, double *predictedValue);
-void forward(W* w, B* b, Data* data, HiddenLayer* hiddenLayer);
-void initParameter( double* w, unsigned int row, unsigned int column);
-double getRandom();
-*/
+
+
+
+
+
 void originalSoftmax(double* vector, int size);
 void sigmoid(double* vector, int size);
 void fixedSoftmax(double* vector, int size, double base);
