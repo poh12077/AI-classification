@@ -6,21 +6,20 @@
 #include <pthread.h>
 
 #define resolution 512*512
-#define batch 784
+#define inputNode 784
 #define node_0 10
 #define node_1 10
-#define node_2 10
 #define outputNode 10
-#define learningRateMacro 1 //traing work 
+#define learningRateMacro 0.1 //traing work 
 #define base 1.001
 #define iteration 1
-#define trainDataNum 1000
+#define batch 1000
 #define parameterFilePath "parameter"
 #define dataPath "../data/MNIST_CSV/mnist_train.csv"
-#define mnistDataNum 60000
+#define dataSize 60000
 
 typedef struct Data{
-	double input[batch];
+	double input[inputNode];
 	double output[outputNode];
 }Data;
 
@@ -32,19 +31,19 @@ typedef struct Gradient{
 typedef struct HiddenLayer{
 	double _0[node_0];
 	double _1[node_1];
-	double _2[node_2];
+	double _2[outputNode];
 }HiddenLayer;
 
 typedef struct Weight{
-	double _0[node_0][batch];
+	double _0[node_0][inputNode];
 	double _1[node_1][node_0];
-	double _2[node_2][node_1];
+	double _2[outputNode][node_1];
 }W;
 
 typedef struct Bias{
 	double _0[node_0];
 	double _1[node_1];
-	double _2[node_2];
+	double _2[outputNode];
 }B;
 
 typedef struct GradientDescentInput{
@@ -76,8 +75,8 @@ void readParameter(char* path, W* w, B* b );
 
 pthread_mutex_t key = PTHREAD_MUTEX_INITIALIZER;
 
-Data trainData[trainDataNum];
-double mnist[ mnistDataNum ][28*28+1];
+Data trainData[batch];
+double mnist[ dataSize ][28*28+1];
 	
 int main()
 {
@@ -88,28 +87,28 @@ int main()
 	W w;
 	B b;
 
-	initParameter( w._0, node_0, batch);
+	initParameter( w._0, node_0, inputNode);
 	initParameter( w._1, node_1, node_0);
-	initParameter( w._2, node_2, node_1);
+	initParameter( w._2, outputNode, node_1);
 	initParameter( b._0, node_0, 1);
 	initParameter( b._1, node_1, 1);
-	initParameter( b._2, node_2, 1);
+	initParameter( b._2, outputNode, 1);
 
 
 	while(1){
 
-		readMnist( dataPath , mnist, mnistDataNum );
+		readMnist( dataPath , mnist, dataSize );
 
-		for(int i=0;i<trainDataNum;i++){
-			int random = rand() % mnistDataNum;
-			memcpy( trainData[i].input, &mnist[ random ][1], sizeof(double)*batch );   	
-			normalize( trainData[i].input, batch, 255 );
+		for(int i=0;i<batch;i++){
+			int random = rand() % dataSize;
+			memcpy( trainData[i].input, &mnist[ random ][1], sizeof(double)*inputNode );   	
+			normalize( trainData[i].input, inputNode, 255 );
 			oneHotEncoding( mnist[ random ][0], trainData[i].output , outputNode);
 		}
 		readParameter( parameterFilePath, &w, &b );
 
 		for(int j=0;j<iteration;j++){
-			for(int i=0;i<trainDataNum;i++){
+			for(int i=0;i<batch;i++){
 				printf("data number : %d\n", i);
 				gradientDescent(&w, &b, trainData+i, &hiddenLayer, learningRateMacro );	
 				printf("\n");
@@ -130,7 +129,7 @@ void gradientDescent(W* w, B* b, Data* data, HiddenLayer* hiddenLayer, double le
 	//while(1)
 	//for(int c=0; c<iteration; c++) 
 	{
-		gradient = getGradient(w, b, data, hiddenLayer, 0.001);
+		gradient = getGradient(w, b, data, hiddenLayer, 0.0001);
 		for(int i=0; i< sizeof(W)/sizeof(double); i++){
 			pw[i] += learningRate * gradient.w[i]; 
 		}
@@ -277,8 +276,8 @@ void readImage(const char* path, Data* data, int isLena ){
 	unsigned char buffer[resolution];
 	fread(buffer, 1 , resolution, fptr); 
 
-	for(int i=0;i<batch;i++){
-		int n = resolution/batch;
+	for(int i=0;i<inputNode;i++){
+		int n = resolution/inputNode;
 		data->input[i] = (double)buffer[i*n];
 	}
 	if( isLena ){
@@ -288,7 +287,7 @@ void readImage(const char* path, Data* data, int isLena ){
 		data->output[0] = 0;
 		data->output[1] = 1;
 	}
-	normalize( data->input, batch, 255 );
+	normalize( data->input, inputNode, 255 );
 	
 	fclose(fptr); 
 }
@@ -316,11 +315,11 @@ void runRandomDataTest(int trials, W* w, B* b, HiddenLayer *hiddenLayer ){
 	printf("test started\n");
 	Data data;
 	for(int j=0; j<trials; j++){
-		for(int i=0;i<batch;i++){
+		for(int i=0;i<inputNode;i++){
 			int r = rand()%256;
 			data.input[i] = (double)r;
 		}
-		normalize( data.input, batch, 255 );
+		normalize( data.input, inputNode, 255 );
 		predict( w, b, &data, hiddenLayer );
 	}
 }
@@ -360,7 +359,7 @@ Gradient getGradient(W* w, B* b, Data *data, HiddenLayer *hiddenLayer, double h 
 
 
 void forward(W* w, B* b, Data *data, HiddenLayer *hiddenLayer){
-	multiplyMatrices( w->_0, data->input, node_0, batch, 1, hiddenLayer->_0);
+	multiplyMatrices( w->_0, data->input, node_0, inputNode, 1, hiddenLayer->_0);
 	addMatrices( b->_0, hiddenLayer->_0, hiddenLayer->_0, node_0, 1 );
 //	sigmoid( hiddenLayer->_0, node_0 );
 
@@ -368,9 +367,9 @@ void forward(W* w, B* b, Data *data, HiddenLayer *hiddenLayer){
 	addMatrices( b->_1, hiddenLayer->_1, hiddenLayer->_1, node_1, 1 );
 //	sigmoid( hiddenLayer->_1, node_1 );
 
-	multiplyMatrices( w->_2, hiddenLayer->_1, node_2, node_1, 1, hiddenLayer->_2 );	
-	addMatrices( b->_2, hiddenLayer->_2, hiddenLayer->_2, node_2, 1 );
-//	sigmoid( hiddenLayer->_2, node_2 );
+	multiplyMatrices( w->_2, hiddenLayer->_1, outputNode, node_1, 1, hiddenLayer->_2 );	
+	addMatrices( b->_2, hiddenLayer->_2, hiddenLayer->_2, outputNode, 1 );
+//	sigmoid( hiddenLayer->_2, outputNode );
 
 	fixedSoftmax( hiddenLayer->_2, outputNode, base );
 //	originalSoftmax( hiddenLayer->_2, 2 );

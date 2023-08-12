@@ -1,3 +1,3 @@
 #!/bin/bash
 
-nohup ./train.out&
+./train.out&
