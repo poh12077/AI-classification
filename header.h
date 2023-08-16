@@ -7,7 +7,7 @@
 #define node_0 10
 #define node_1 10
 #define outputNode 10
-#define learningRateMacro 0.1 //traing work
+#define learningRateMacro 0.1
 #define softmaxBase 1.001
 #define iteration 1
 #define parameterFilePath "parameter"

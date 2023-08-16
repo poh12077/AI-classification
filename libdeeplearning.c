@@ -40,7 +40,6 @@ void gradientDescent(W* w, B* b, Data* data, HiddenLayer* hiddenLayer, double le
     }
 }
 
-
 void writeParameter(char* path, W* w, B* b ){
     FILE *fptr;
     fptr = fopen(path,"wb");
@@ -205,7 +204,6 @@ double getLoss(W* w, B* b, Data *data, HiddenLayer *hiddenLayer){
     return (-1) * GetDistance( &(data->output), &(hiddenLayer->_2) );
 }
 
-
 double getRandom(){
     int r = rand();
     if( r % 2 ==0 ){
@@ -222,7 +220,6 @@ void initParameter( double* w, unsigned int row, unsigned int column){
         //w[i] = 1;
     }
 }
-
 
 int findBiggestOrder(double* arr, int size){
 	double* brr = (double*)malloc( sizeof(double) * size );
@@ -298,7 +295,6 @@ void originalSoftmax(double* vector, int size){
 	}
 }
 
-
 void predict( W* w, B* b, Data *data, HiddenLayer *hiddenLayer, int* numberOfCorrect ){
     forward(w, b, data, hiddenLayer );
     double loss = absolute( getLoss( w, b, data, hiddenLayer ) );
@@ -320,8 +316,6 @@ void predict( W* w, B* b, Data *data, HiddenLayer *hiddenLayer, int* numberOfCor
     }
     printf("\n");
 }
-
-
 
 void fixedSoftmax(double* vector, int size ){
 	double sum=0;
@@ -376,11 +370,4 @@ void subtractMatrices(double *a, double *b, double *result, unsigned int row, un
 	}	
 }
 
-/*
-int main(){
-	
-	double a[5]={ -1.3, 1, -2.4, 5.4, 8.2};
-	int x = findBiggestOrder(a,5);
 
-}
-*/
